@@ -40,14 +40,14 @@ export const AuthForm = ({
         <CardContent>
           <div className="flex flex-col gap-2 ">
             <Label
-              htmlFor="phone"
+              htmlFor="email"
               className="text-sm font-medium text-muted-foreground "
             >
-              Email or Phone Number
+              Email
             </Label>
             <Input
-              id="phone"
-              name="phone"
+              id="email"
+              name="email"
               placeholder="Enter your email"
             />
           </div>
