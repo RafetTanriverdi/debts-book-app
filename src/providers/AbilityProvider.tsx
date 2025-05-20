@@ -1,30 +1,28 @@
-"use client";
-import { createClient } from "@rt/authentication/supabase/client";
-import { buildAbilityFor } from "@rt/authorization/ability";
-import { AbilityContext } from "@rt/authorization/Can";
-import { useQuery } from "@tanstack/react-query";
-import React from "react";
+'use client';
 
-function AbilityProvider({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  const { data: user } = useQuery({
-    queryKey: ["user"],
-    queryFn: async () => {
-      const { auth } = await createClient();
-      const { data } = await auth.getUser();
-      return data.user;
-    },
-    refetchOnWindowFocus: false,
-  });
+import React, { useEffect, useMemo } from 'react';
+import { AbilityContext } from '@rt/authorization/Can';
+import { buildAbilityFor } from '@rt/authorization/ability';
+import { setPermissions as formatPermissions } from '@rt/utils/permission';
+import { useSelector, useDispatch } from 'react-redux';
+import { AppDispatch, RootState } from '@rt/data/store';
+import { fetchPermissions } from '@rt/data/store/slices/permissionSlice';
 
-  const ability = buildAbilityFor(
-    user?.user_metadata?.permission || []
+function AbilityProvider({ children }: { children: React.ReactNode }) {
+  const dispatch = useDispatch<AppDispatch>();
+  const { permissions } = useSelector((state: RootState) => state.permission);
+
+  useEffect(() => {
+    dispatch(fetchPermissions());
+  }, [dispatch]);
+
+  const ability = useMemo(
+    () => buildAbilityFor(formatPermissions(permissions)),
+    [permissions]
   );
+
   return (
-    <AbilityContext.Provider value={ability}>
+    <AbilityContext.Provider value={ability || buildAbilityFor([])}>
       {children}
     </AbilityContext.Provider>
   );

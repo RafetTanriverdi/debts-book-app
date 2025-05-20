@@ -3,7 +3,7 @@
 import { useContext } from "react";
 import { AbilityContext } from "@rt/authorization/Can";
 import { useQuery } from "@tanstack/react-query";
-import { createClient } from "@rt/authentication/supabase/client";
+import { createClient } from "@rt/authentication/client";
 
 type Props = {
   role: string;

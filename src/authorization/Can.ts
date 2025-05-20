@@ -1,12 +1,9 @@
-"use client";
+'use client';
 
-import { createContext } from "react";
-import { createContextualCan } from "@casl/react";
+import { createContext } from 'react';
+import { createContextualCan } from '@casl/react';
 
-import { AnyAbility } from "@casl/ability";
+import { AnyAbility } from '@casl/ability';
 
-export const AbilityContext =
-  createContext<AnyAbility>({} as AnyAbility);
-export const Can = createContextualCan(
-  AbilityContext.Consumer
-);
+export const AbilityContext = createContext<AnyAbility>({} as AnyAbility);
+export const Can = createContextualCan(AbilityContext.Consumer);

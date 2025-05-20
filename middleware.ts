@@ -1,4 +1,4 @@
-import { updateSession } from "@rt/authentication/supabase/middleware";
+import { updateSession } from "@rt/authentication/middleware";
 import { type NextRequest } from "next/server";
 
 export async function middleware(
