@@ -63,6 +63,10 @@ function Header() {
       title: 'Products',
       href: '/products',
     },
+    {
+      title: ' Debts',
+      href: '/debts',
+    },
   ];
 
   return (
