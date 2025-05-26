@@ -8,19 +8,20 @@ datasource db {
 }
 
 model users {
-  id        String      @id @default(uuid())
-  name      String
-  email     String      @unique
-  imageUrl  String?
-  role      String
-  products  products[]  @relation("UserProducts")
-  customers customers[] @relation("UserCustomers")
-  createdAt DateTime    @default(now())
-  updatedAt DateTime    @updatedAt
+  id          String      @id @default(uuid())
+  name        String
+  email       String      @unique
+  imageUrl    String?
+  role        String
+  permissions String[]
+  products    products[]  @relation("UserProducts")
+  customers   customers[] @relation("UserCustomers")
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
 }
 
 model products {
-  id          String   @id @default(uuid())
+  id          String       @id @default(uuid())
   name        String
   description String?
   imageUrl    String?
@@ -29,10 +30,11 @@ model products {
   price       Float
   userId      String
   ownerId     String[]
-  user        users    @relation(fields: [userId], references: [id], name: "UserProducts")
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  user        users        @relation(fields: [userId], references: [id], name: "UserProducts")
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
   debts       debts[]
+  debt_items  debt_items[]
 }
 
 model customers {
@@ -50,12 +52,37 @@ model customers {
 }
 
 model debts {
-  id         String    @id @default(uuid())
+  id         String          @id @default(uuid())
   customerId String
-  productId  String
-  quantity   Int
+  customer   customers       @relation(fields: [customerId], references: [id])
   totalPrice Float
-  date       DateTime  @default(now())
-  customer   customers @relation(fields: [customerId], references: [id])
-  product    products  @relation(fields: [productId], references: [id])
+  paidAmount Float           @default(0)
+  remaining  Float           @default(0)
+  createdAt  DateTime        @default(now())
+  updatedAt  DateTime        @updatedAt
+  items      debt_items[]
+  payments   debt_payments[]
+  products   products?       @relation(fields: [productsId], references: [id])
+  productsId String?
+}
+
+model debt_items {
+  id        String @id @default(uuid())
+  debtId    String
+  productId String
+  quantity  Int
+  unitPrice Float
+  total     Float
+
+  debt    debts    @relation(fields: [debtId], references: [id])
+  product products @relation(fields: [productId], references: [id])
+}
+
+model debt_payments {
+  id     String   @id @default(uuid())
+  debtId String
+  amount Float
+  date   DateTime @default(now())
+
+  debt debts @relation(fields: [debtId], references: [id])
 }

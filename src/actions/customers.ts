@@ -13,7 +13,6 @@ export async function listCustomers() {
   const { auth } = await createClient();
   const { data: currentUser, error: currentUserError } = await auth.getUser();
   if (currentUserError) {
-    console.error('Error fetching current user:', currentUserError);
     throw new Error('Failed to fetch current user');
   }
 
@@ -27,41 +26,54 @@ export async function listCustomers() {
 export async function createCustomer(data: {
   name: string;
   phone: string;
-  email?: string;
-  userId?: string;
-  password?: string;
+  email: string;
+  userId: string;
+  password: string;
   address?: string;
   tcNo?: string;
 }) {
   try {
     const { auth } = await createClient();
-    const { data: currentUser, error: currentUserError } = await auth.getUser();
-    const { error, data: userPool } = await supabaseAdmin.auth.admin.createUser(
-      {
-        email: data.email,
-        user_metadata: {
-          name: data.name,
-          phone: data.phone,
-          role: 'customer',
-        },
-      }
+    const { data: currentUser } = await auth.getUser();
+    await supabaseAdmin.auth.admin.createUser({
+      email: data.email,
+      email_confirm: true,
+      phone: data.phone,
+      phone_confirm: true,
+      password: data.password,
+      user_metadata: {
+        role: 'customer',
+        name: data.name,
+        phone: data.phone,
+        address: data.address,
+        tcNo: data.tcNo,
+      },
+    });
+
+    const existingCustomer = await supabaseAdmin.auth.admin.listUsers({});
+    const checkExistingCustomer = existingCustomer.data.users.filter(
+      (user) => user.email === data.email
     );
 
-    console.log('User creation response:', userPool);
-    if (!error && !currentUserError) {
-      const user = await prisma.customers.create({
-        data: {
-          ...data,
-          userId: currentUser?.user?.id,
-        },
-      });
-
-      console.log('User created successfully:', user);
-      return user;
+    if (checkExistingCustomer.length > 0) {
+      throw new Error('Customer with this email already exists');
     }
+
+    if (!currentUser?.user?.id) {
+      throw new Error('User ID is undefined');
+    }
+
+    return await prisma.customers.create({
+      data: {
+        ...data,
+        userId: currentUser.user.id,
+      },
+    });
   } catch (error) {
-    console.log('Error creating customer:', error);
-    throw new Error('Failed to create customer');
+    console.error('Error creating customer:', error);
+    throw new Error(
+      typeof error === 'string' ? error : 'An unknown error occurred'
+    );
   }
 }
 
@@ -77,11 +89,18 @@ export async function updateCustomer(
   data: {
     name?: string;
     phone?: string;
-    email?: string;
+    address?: string;
+    tcNo?: string;
   }
 ) {
   return await prisma.customers.update({
     where: { id: customerId },
     data,
+  });
+}
+
+export async function deleteCustomer(customerId: string) {
+  return await prisma.customers.delete({
+    where: { id: customerId },
   });
 }

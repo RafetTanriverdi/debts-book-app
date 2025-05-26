@@ -13,12 +13,15 @@ import {
 } from '@rt/components/ui/dialog';
 import { Input } from '@rt/components/ui/input';
 import { Label } from '@rt/components/ui/label';
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Loader2 } from 'lucide-react';
 import React, { useState } from 'react';
+import { toast } from 'sonner';
 
 export default function CreateCustomerModal() {
   const [modalOpen, setModalOpen] = useState(false);
+  const queryClient = useQueryClient();
+
   const handleCreateCustomer = useMutation({
     mutationKey: ['createCustomer'],
     mutationFn: async (formData: FormData) => {
@@ -27,6 +30,7 @@ export default function CreateCustomerModal() {
       const phone = formData.get('phone') as string;
       const address = formData.get('address') as string;
       const tcKimlik = formData.get('tc') as string;
+      const password = formData.get('password') as string;
 
       const { auth } = await createClient();
       const user = await auth.getUser();
@@ -42,14 +46,24 @@ export default function CreateCustomerModal() {
         phone: phone,
         address: address,
         tcNo: tcKimlik,
+        userId: userId,
+        password: password,
       });
       return res;
     },
     onSuccess: (data) => {
-      console.log('Customer created successfully', data);
+      console.log('Customer created successfully:', data);
+      toast.success('Customer created successfully!', {
+        description: `Customer ${data?.name} has been created.`,
+      });
+      queryClient.invalidateQueries({ queryKey: ['customerList'] });
     },
     onError: (error) => {
-      console.log('Error creating customer:', error);
+      toast.error('Failed to create customer', {
+        description: error.message
+          ? error.message
+          : 'An unknown error occurred while creating the customer.',
+      });
     },
   });
 
@@ -73,6 +87,7 @@ export default function CreateCustomerModal() {
                 name="name"
                 placeholder="Enter your Name and Surname"
                 type="text"
+                required
               />
             </div>
             <div>
@@ -84,6 +99,7 @@ export default function CreateCustomerModal() {
                 name="phone"
                 placeholder="Enter your Phone Number"
                 type="text"
+                required
               />
             </div>
 
@@ -96,6 +112,19 @@ export default function CreateCustomerModal() {
                 name="email"
                 placeholder="Enter your Email"
                 type="email"
+                required
+              />
+            </div>
+            <div>
+              <Label htmlFor="password" className="mb-1.5">
+                Password
+              </Label>
+              <Input
+                id="password"
+                name="password"
+                placeholder="Enter your Password"
+                type="password"
+                required
               />
             </div>
             <div>
@@ -118,11 +147,10 @@ export default function CreateCustomerModal() {
                 name="tc"
                 placeholder="Enter your TC Kimlik No"
                 type="text"
-                required
               />
             </div>
           </div>
-          <DialogFooter>
+          <DialogFooter className="mt-4">
             <Button
               variant={'outline'}
               type="button"
@@ -131,7 +159,7 @@ export default function CreateCustomerModal() {
               Cancel
             </Button>
             <Button type="submit" variant={'default'}>
-              {handleCreateCustomer.isPaused ? (
+              {handleCreateCustomer.isPending ? (
                 <Loader2 className="animate-spin size-4" />
               ) : (
                 'Create'

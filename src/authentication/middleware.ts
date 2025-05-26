@@ -32,13 +32,13 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(new URL('/login', request.url));
   }
 
-  if (user && role === 'customer') {
-    const loginUrl = new URL('/login', request.url);
-    loginUrl.searchParams.set('error', 'unauthorized');
-    return NextResponse.redirect(loginUrl);
-  }
+  // if (user && role === 'customer') {
+  //   const loginUrl = new URL('/login', request.url);
+  //   loginUrl.searchParams.set('error', 'unauthorized');
+  //   return NextResponse.redirect(loginUrl);
+  // }
 
-  if (user && role === 'business' && isAuthRoute) {
+  if (user && isAuthRoute) {
     return NextResponse.redirect(new URL('/dashboard', request.url));
   }
 
